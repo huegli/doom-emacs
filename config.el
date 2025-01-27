@@ -75,6 +75,22 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 
+;; No titlebar decorations for Emacs windows
+(add-to-list 'default-frame-alist '(undecorated-round . t))
+
+;; some convienience key bindings
+(global-set-key (kbd "s-n") #'make-frame)
+(global-set-key (kbd "s-w") #'delete-frame)
+(global-set-key (kbd "C-z") #'undo)
+
+;; (use-package! xah-fly-keys
+;;   :custom
+;;   (xah-fly-use-control-key t)
+;;   (xah-fly-use-meta-key t)
+;;   :config
+;;   (xah-fly-keys-set-layout "dvorak")
+;;   (xah-fly-keys 1))
+
 (use-package! denote
   :hook (dired-mode . denote-dired-mode)
   :bind
@@ -100,14 +116,6 @@
   (denote-rename-buffer-mode 1)
   )
 
-;; (use-package! xah-fly-keys
-;;   :custom
-;;   (xah-fly-use-control-key t)
-;;   (xah-fly-use-meta-key t)
-;;   :config
-;;   (xah-fly-keys-set-layout "dvorak")
-;;   (xah-fly-keys 1))
-
 (use-package! casual
   :bind (
          ;; :map bookmark-bmenu-mode-map
@@ -128,7 +136,7 @@
               ("C-c C-d C-i" . #'denote-dired-link-marked-notes)
               ("C-c C-d C-r" . #'denote-dired-rename-files)
               ("C-c C-d C-k" . #'denote-dired-rename-marked-files-with-keywords)
-              ("C-c C-d C-R" . #'denote-dired-rename-marked-files-using-front-matter)
+              ;; ("C-c C-d C-R" . #'denote-dired-rename-marked-files-using-front-matter)
          )
   :config
   (setq dired-dwim-target t)
@@ -154,10 +162,6 @@
 (use-package! org-roam
   :custom
   ((org-roam-directory "~/Library/CloudStorage/Dropbox/Documents/Org/roam")))
-
-;; (use-package! org-modern
-  ;; :config
-  ;; (global-org-modern-mode t))
 
 (use-package! nov
   :config
