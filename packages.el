@@ -64,3 +64,8 @@
 
 (package! ultra-scroll
   :recipe (:host github :repo "jdtsmith/ultra-scroll"))
+
+(package! gptel)
+
+(package! copilot
+  :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el")))
