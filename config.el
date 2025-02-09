@@ -153,16 +153,16 @@
   :config
   (ultra-scroll-mode 1))
 
-(use-package! gptel
-  :bind
-  ( :map global-map
-         ("C-c g" . gptel-send)
-         ("C-c C-g" . gptel-send))
-  :config
-  (gptel-make-ollama "Ollama"
-    :host "localhost:11434"
-    :stream t
-    :models '(llama3.3:latest deepseek-r1:latest)))
+;; (use-package! gptel
+;;   :bind
+;;   ( :map global-map
+;;          ("C-c g" . gptel-send)
+;;          ("C-c C-g" . gptel-send))
+;;   :config
+;;   (gptel-make-ollama "Ollama"
+;;     :host "localhost:11434"
+;;     :stream t
+;;     :models '(llama3.3:latest deepseek-r1:latest)))
 
 ;; accept completion from copilot and fallback to company
 ;;(use-package! copilot
@@ -172,3 +172,7 @@
 ;;             ("TAB" . 'copilot-accept-completion)
 ;;              ("C-TAB" . 'copilot-accept-completion-by-word)
 ;;              ("C-<tab>" . 'copilot-accept-completion-by-word)))
+
+(use-package! ollama-buddy
+  :bind (:map global-map
+              ("C-c o l" . ollama-buddy-menu)))

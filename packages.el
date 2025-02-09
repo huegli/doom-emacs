@@ -1,5 +1,5 @@
-;; -*- no-byte-compile: t; -*-
-;;; $DOOMDIR/packages.el
+	;; -*- no-byte-compile: t; -*-
+	;;; $DOOMDIR/packages.el
 
 ;; To install a package with Doom you must declare them here and run 'doom sync'
 ;; on the command line, then restart Emacs for the changes to take effect -- or
@@ -65,7 +65,10 @@
 (package! ultra-scroll
   :recipe (:host github :repo "jdtsmith/ultra-scroll"))
 
-(package! gptel)
+;; (package! gptel)
 
-(package! copilot
-  :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el")))
+;; (package! copilot
+;;  :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el")))
+
+(package! ollama-buddy
+  :recipe (:host github :repo "captainflasmr/ollama-buddy"))
