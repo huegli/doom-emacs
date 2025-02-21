@@ -95,23 +95,9 @@
   (denote-rename-buffer-mode 1)
   )
 
-(use-package! casual
-  :bind (
-         ;; :map bookmark-bmenu-mode-map
-              ;; ("C-o" . #'casual-bookmarks-tmenu)
-              ;; ("J" . #'bookmark-jump)
-              ;; :map calendar-mode-map
-              ;; ("C-o" . #'casual-calendar-tmenu)
-              ;; :map Info-mode-map
-              ;; ("C-o" . #'casual-info-tmenu)
-         ))
-
 (use-package! dired
   :bind (
          :map dired-mode-map
-              ("C-o" . #'casual-dired-tmenu)
-              ("s" . #'casual-dired-sort-by-tmenu)
-              ("/" . #'casual-dired-search-replace-tmenu)
               ("C-c C-d C-i" . #'denote-dired-link-marked-notes)
               ("C-c C-d C-r" . #'denote-dired-rename-files)
               ("C-c C-d C-k" . #'denote-dired-rename-marked-files-with-keywords)
@@ -152,6 +138,12 @@
         scroll-margin 0)
   :config
   (ultra-scroll-mode 1))
+
+(use-package! sly
+  :init
+  (setq sly-lisp-implementations
+        '((sbcl ("/opt/homebrew/bin/sbcl" "--dynamic-space-size 4096"))
+          (lispworks ("/Users/Nikolai/lw-console")))))
 
 ;; (use-package! gptel
 ;;   :bind

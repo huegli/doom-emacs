@@ -51,15 +51,6 @@
 (package! denote)
 (package! denote-explore)
 
-;; (package! xah-fly-keys)
-
-(package! casual)
-
-;; (package! org-mac-link)
-;; (package! org-modern)
-(package! org-menu
- :recipe (:host github :repo "sheijk/org-menu"))
-
 (package! nov)
 
 (package! ultra-scroll
