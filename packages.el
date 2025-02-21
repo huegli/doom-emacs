@@ -50,7 +50,9 @@
 
 (package! denote)
 (package! denote-explore)
+(package! consult-denote)
 
+(package! olivetti)
 (package! nov)
 
 (package! ultra-scroll

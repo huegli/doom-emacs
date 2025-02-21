@@ -6,8 +6,8 @@
 
 ;; Some functionality uses this to identify you, e.g. GPG configuration, email
 ;; clients, file templates and snippets. It is optional.
-;; (setq user-full-name "John Doe"
-;;       user-mail-address "john@doe.com")
+(setq user-full-name "Nikolai Schlegel"
+      user-mail-address "nikolai.schlegel@gmail.com")
 
 ;; Local Font & Theme configuration
 ;;
@@ -15,7 +15,7 @@
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
-(setq display-line-numbers-type t)
+(setq display-line-numbers-type nil)
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
@@ -62,14 +62,6 @@
 (global-set-key (kbd "s-w") #'delete-frame)
 (global-set-key (kbd "C-z") #'undo)
 
-;; (use-package! xah-fly-keys
-;;   :custom
-;;   (xah-fly-use-control-key t)
-;;   (xah-fly-use-meta-key t)
-;;   :config
-;;   (xah-fly-keys-set-layout "dvorak")
-;;   (xah-fly-keys 1))
-
 (use-package! denote
   :hook (dired-mode . denote-dired-mode)
   :bind
@@ -77,12 +69,6 @@
          ("C-c d n" . denote-open-or-create)
          ("C-c d d" . denote-sort-dired)
          ("C-c d r" . denote-rename-file)
-         ("C-c d R" . denote-rename-file-using-front-matter)
-         ("C-c d j" . denote-journal-extras-new-or-existing-entry)
-         ;; :map org-mode-map
-         ;; ("C-c d l" . denote-link)
-         ;; ("C-c d L" . denote-add-links)
-         ;; ("C-c d b" . denote-backlinks)
          )
   :custom
   ((denote-directory "~/Library/CloudStorage/Dropbox/Documents/Org/denote")
@@ -95,13 +81,17 @@
   (denote-rename-buffer-mode 1)
   )
 
+(use-package! consult-denote
+  :bind ( :map global-map
+        ("C-c d f" . consult-denote-find)
+        ("C-c d g" . consult-denote-grep))
+  :config
+  (consult-denote-mode 1))
+
 (use-package! dired
   :bind (
          :map dired-mode-map
-              ("C-c C-d C-i" . #'denote-dired-link-marked-notes)
               ("C-c C-d C-r" . #'denote-dired-rename-files)
-              ("C-c C-d C-k" . #'denote-dired-rename-marked-files-with-keywords)
-              ;; ("C-c C-d C-R" . #'denote-dired-rename-marked-files-using-front-matter)
          )
   :config
   (setq dired-dwim-target t)
@@ -113,12 +103,17 @@
   (add-hook 'dired-mode-hook #'denote-dired-mode-in-directories))
 
 (use-package! org
-  :bind (
-         :map org-mode-map
-              ("C-c m" . #'org-menu)
-         )
+  :hook (org-mode . variable-pitch-mode )
+  :custom-face
+  (org-document-title ((t (:weight bold :height 1.8))))
+  (org-level-1 ((t (:weight semibold :height 1.3))))
+  (org-level-2 ((t (:weight regular :height 1.1))))
+  (org-code ((nil (:inherit fixed-pitch))))
+  (org-table ((nil (:inherit fixed-pitch))))
+  (org-verbatim ((nil (:inherit fixed-pitch))))
   :custom
-  ((org-attach-id-dir "~/Library/CloudStorage/Dropbox/Documents/Org/attachments")))
+  ((org-attach-id-dir "~/Library/CloudStorage/Dropbox/Documents/Org/attachments")
+   (org-startup-with-inline-images t)))
 
 (use-package! org-download
   :custom
@@ -128,9 +123,18 @@
   :custom
   ((org-roam-directory "~/Library/CloudStorage/Dropbox/Documents/Org/roam")))
 
+(use-package! olivetti
+  :hook (org-mode . olivetti-mode))
+
+(defun my-nov-setup ()
+  (face-remap-add-relative 'variable-pitch :family "ETBembo"
+                                           :height 1.2)
+  (variable-pitch-mode))
+
 (use-package! nov
   :config
-  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode)))
+  (add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
+  (add-hook 'nov-mode-hook 'my-nov-setup))
 
 (use-package! ultra-scroll
   :init
