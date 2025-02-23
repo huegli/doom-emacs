@@ -62,6 +62,11 @@
 (global-set-key (kbd "s-w") #'delete-frame)
 (global-set-key (kbd "C-z") #'undo)
 
+(use-package! vertico-posframe
+  :custom
+  ((vertico-posframe-width 150)
+   (vertico-posframe-height 30)))
+
 (use-package! denote
   :hook (dired-mode . denote-dired-mode)
   :bind
