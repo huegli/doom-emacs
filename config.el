@@ -62,6 +62,23 @@
 (global-set-key (kbd "s-w") #'delete-frame)
 (global-set-key (kbd "C-z") #'undo)
 
+;; configuration for Meow
+(meow-normal-define-key
+ '("/" . other-window)
+ '("|" . split-window-right)
+ '("_" . split-window-below)
+ '("=" . delete-window))
+(meow-motion-define-key
+ '("/" . other-window)
+ '("|" . split-window-right)
+ '("_" . split-window-below)
+ '("=" . delete-window))
+
+(after! ace-window
+  (setq aw-scope 'global
+        aw-keys '(?1 ?2 ?3 ?4)
+        aw-background t))
+
 (use-package! vertico-posframe
   :custom
   ((vertico-posframe-width 150)
