@@ -168,8 +168,9 @@
 (use-package! sly
   :init
   (setq sly-lisp-implementations
-        '((sbcl ("/opt/homebrew/bin/sbcl" "--dynamic-space-size 4096"))
-          (lispworks ("/Users/Nikolai/lw-console")))))
+        '((lispworks ("/Users/Nikolai/.local/bin/lw-console"))
+          (sbcl ("/opt/homebrew/bin/sbcl" "--dynamic-space-size 4096")))))
+
 
 ;; (use-package! gptel
 ;;   :bind
