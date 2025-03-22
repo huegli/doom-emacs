@@ -57,27 +57,13 @@
 ;; No titlebar decorations for Emacs windows
 (add-to-list 'default-frame-alist '(undecorated-round . t))
 
+;; Small text scaling for Zen mode
+(setq! +zen-text-scale 1.2)
+
 ;; some convienience key bindings
 (global-set-key (kbd "s-n") #'make-frame)
 (global-set-key (kbd "s-w") #'delete-frame)
 (global-set-key (kbd "C-z") #'undo)
-
-;; configuration for Meow
-(meow-normal-define-key
- '("/" . other-window)
- '("|" . split-window-right)
- '("_" . split-window-below)
- '("=" . delete-window))
-(meow-motion-define-key
- '("/" . other-window)
- '("|" . split-window-right)
- '("_" . split-window-below)
- '("=" . delete-window))
-
-(after! ace-window
-  (setq aw-scope 'global
-        aw-keys '(?1 ?2 ?3 ?4)
-        aw-background t))
 
 (use-package! vertico-posframe
   :custom
@@ -97,7 +83,6 @@
    (denote-file-type 'org)
    (denote-known-keywords '("emacs" "macosx" "stephanie" "mikhaila" "sandiego" "financials" "programing"))
    (denote-date-prompt-use-org-read-date t)
-   (denote-journal-extras-title-format 'day-date-month-year)
    (denote-dired-directories-include-subdirectories t))
   :config
   (denote-rename-buffer-mode 1)
@@ -125,17 +110,23 @@
   (add-hook 'dired-mode-hook #'denote-dired-mode-in-directories))
 
 (use-package! org
-  :hook (org-mode . variable-pitch-mode )
   :custom-face
-  (org-document-title ((t (:weight bold :height 1.8))))
-  (org-level-1 ((t (:weight semibold :height 1.3))))
-  (org-level-2 ((t (:weight regular :height 1.1))))
-  (org-code ((nil (:inherit fixed-pitch))))
-  (org-table ((nil (:inherit fixed-pitch))))
-  (org-verbatim ((nil (:inherit fixed-pitch))))
+  (org-document-title ((t (:weight bold :height 1.4))))
   :custom
   ((org-attach-id-dir "~/Library/CloudStorage/Dropbox/Documents/Org/attachments")
-   (org-startup-with-inline-images t)))
+   (org-startup-with-inline-images t)
+   (org-confirm-babel-evaluate t)
+   (org-babel-lisp-eval-fn 'sly-eval))
+  :config
+  (add-to-list 'org-file-apps '("\\.xlsx\\'" . system))
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (lisp . t)
+     (python . t)
+     (dot . t)
+     (gnuplot . t)
+     (conf-space . t))))
 
 (use-package! org-download
   :custom
@@ -145,8 +136,8 @@
   :custom
   ((org-roam-directory "~/Library/CloudStorage/Dropbox/Documents/Org/roam")))
 
-(use-package! olivetti
-  :hook (org-mode . olivetti-mode))
+(use-package! writeroom
+  :hook (org-mode . writeroom-mode))
 
 (defun my-nov-setup ()
   (face-remap-add-relative 'variable-pitch :family "ETBembo"
@@ -171,6 +162,13 @@
         '((lispworks ("/Users/Nikolai/.local/bin/lw-console"))
           (sbcl ("/opt/homebrew/bin/sbcl" "--dynamic-space-size 4096")))))
 
+(use-package! pulsar
+  :config
+  (setq pulsar-pulse nil)
+  (setq pulsar-face 'pulsar-yellow)
+  (add-hook 'consult-after-jump-hook #'pulsar-recenter-top)
+  (add-hook 'consult-after-jump-hook #'pulsar-reveal-entry)
+  (pulsar-global-mode 1))
 
 ;; (use-package! gptel
 ;;   :bind

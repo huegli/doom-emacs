@@ -51,12 +51,14 @@
 (package! denote)
 (package! denote-explore)
 (package! consult-denote)
+(package! denote-org)
 
-(package! olivetti)
 (package! nov)
 
 (package! ultra-scroll
   :recipe (:host github :repo "jdtsmith/ultra-scroll"))
+
+(package! pulsar)
 
 ;; (package! gptel)
 
