@@ -67,3 +67,7 @@
 
 (package! ollama-buddy
   :recipe (:host github :repo "captainflasmr/ollama-buddy"))
+
+(package! fish-mode)
+
+(package! ulisp-mode)

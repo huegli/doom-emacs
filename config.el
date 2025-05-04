@@ -193,3 +193,7 @@
 (use-package! ollama-buddy
   :bind (:map global-map
               ("C-c o l" . ollama-buddy-menu)))
+
+(use-package! vterm
+  :custom
+  ((vterm-shell "/opt/homebrew/bin/fish")))
