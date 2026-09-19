@@ -1,0 +1,1 @@
+/opt/homebrew/share/emacs/site-lisp/emacs-dracula/dracula-theme.el

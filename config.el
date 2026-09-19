@@ -32,7 +32,7 @@
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
-(setq doom-theme 'doom-dracula)
+(setq doom-theme 'dracula)
 ;; Specify both a dark and light theme, like so and Doom will choose which one
 ;; to load based on your system light/dark setting:
 ;;
@@ -126,8 +126,7 @@
     inferior-hy-mode-hook))
 
 (dolist (hook my/lisp-mode-hooks)
-  (add-hook hook #'rainbow-delimiters-mode)
-  (add-hook hook #'aggressive-indent-mode))
+  (add-hook hook #'rainbow-delimiters-mode))
 
 ;; Doom's smartparens is on by default; if you prefer paredit strictness:
 ;; (dolist (hook my/lisp-mode-hooks) (add-hook hook #'paredit-mode))
