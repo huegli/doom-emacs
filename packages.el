@@ -1,6 +1,9 @@
 ;; -*- no-byte-compile: t; -*-
 ;;; packages.el
 
+;; Colour-matched parens in every Lisp buffer (config.el hooks it).
+(package! rainbow-delimiters)
+
 ;; Hy has no Doom module, so pin it here.
 (package! hy-mode)
 
