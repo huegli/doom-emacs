@@ -137,7 +137,13 @@ With \\[universal-argument] ASK, prompt even when connected, so you can
 open a second Lisp alongside the first."
   (interactive "P")
   (if (and (sly-connected-p) (not ask))
-      (sly-mrepl)
+      ;; `call-interactively' matters. `sly-mrepl' takes a DISPLAY-ACTION
+      ;; argument and does nothing visible without it — a plain
+      ;; (sly-mrepl) finds or creates the buffer and silently returns it.
+      ;; The display behaviour (select the window if the REPL is already
+      ;; visible, else switch to it) lives in its `interactive' spec, so
+      ;; go through that rather than reimplementing it here.
+      (call-interactively #'sly-mrepl)
     (let ((read-answer-short t))
       (pcase (read-answer
               "Which Lisp? "
