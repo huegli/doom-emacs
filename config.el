@@ -15,17 +15,17 @@
 ;; Font settings only apply in GUI; keep here so switching to GUI still works.
 (setq doom-font (font-spec :family "JetBrains Mono" :size 13))
 
-;; Make mouse work in TTY (useful in iTerm2 / tmux).
-(unless (display-graphic-p)
-  (xterm-mouse-mode 1)
-  ;; Enable clipboard passthrough via OSC 52 when available.
-  (setq select-enable-clipboard t
-        select-enable-primary   t))
-
-;; iTerm2 truecolor: Doom detects most cases, but this is a safe nudge.
-(unless (display-graphic-p)
-  (add-to-list 'term-file-aliases '("xterm-256color" . "xterm"))
-  (setq xterm-extra-capabilities '(modifyOtherKeys)))
+;; Terminal mouse, clipboard, cursor shape, and key disambiguation are all
+;; handled by the `(tty +osc)' module in init.el — nothing needed here:
+;;   • xterm-mouse-mode        added to tty-setup-hook by the module
+;;   • clipboard              clipetty / OSC 52 (the +osc flag)
+;;   • key disambiguation     kkp (Kitty keyboard protocol), which also
+;;                            separates C-i from TAB
+;;
+;; Deliberately NOT setting `xterm-extra-capabilities' to modifyOtherKeys:
+;; that is a competing solution to the same problem kkp solves, and running
+;; both risks garbled modifier keys. If a chord like C-c C-l misbehaves in
+;; the terminal, check `M-x kkp-status' before adding anything back here.
 
 ;; Line numbers off in terminal for speed; toggle with C-c t l.
 (setq display-line-numbers-type nil)
