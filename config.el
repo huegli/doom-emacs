@@ -148,11 +148,22 @@ open a second Lisp alongside the first."
         ("lispworks" (my/sly-connect-lispworks))
         (_           (message "No REPL started"))))))
 
-;; Take over C-c C-z, which sly-mrepl binds directly in `sly-mode-map'.
-;; `after! sly-mrepl' matters — binding earlier gets clobbered when the
-;; contrib loads.
-(after! sly-mrepl
-  (define-key sly-mode-map (kbd "C-c C-z") #'my/sly-repl-dwim))
+;; Take over C-c C-z.
+;;
+;; Binding the key directly does NOT work. sly-mrepl.el sets
+;;   (define-key sly-mode-map (kbd "C-c C-z") 'sly-mrepl)
+;; inside its `define-sly-contrib' (:on-load ...) block, and Doom runs
+;; `sly-setup' from `after-init-hook' — after this file has finished
+;; loading. So any define-key here, even behind `after! sly-mrepl', is
+;; applied first and then overwritten.
+;;
+;; A command remap is immune to load order: key lookup finds `sly-mrepl'
+;; and then resolves [remap sly-mrepl] in the active maps, whenever each
+;; was installed. It also catches any other key bound to `sly-mrepl'.
+;; Direct calls like (sly-mrepl) below are unaffected — remapping applies
+;; to key lookup only.
+(after! sly
+  (define-key sly-mode-map [remap sly-mrepl] #'my/sly-repl-dwim))
 
 ;; Offline HyperSpec — after first use it's cached and works without network.
 (after! clhs
