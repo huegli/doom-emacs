@@ -118,7 +118,7 @@
 (map! :after sly
       :map sly-mode-map
       :localleader
-      :desc "REPL"                "'" #'sly-mrepl
+      :desc "REPL (ask which Lisp)" "'" #'my/sly-repl-dwim
       :desc "Restart Lisp"        "R" #'sly-restart-inferior-lisp
       :desc "Interrupt"           "!" #'sly-interrupt
       :desc "Eval last sexp"      "e" #'sly-eval-last-expression

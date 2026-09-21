@@ -90,11 +90,69 @@
   (add-to-list 'sly-contribs 'sly-macrostep)
   (add-to-list 'sly-contribs 'sly-repl-ansi-color))
 
-;; Convenience: one keystroke to attach to the running LispWorks image.
+;;;; ─────────────────────────────────────────────────────────────
+;;;; No auto-start: the REPL appears only when you ask for it
+;;;;
+;;;; Doom's :lang common-lisp module puts `+common-lisp-init-sly-h' on
+;;;; `sly-mode-hook', and that function fires the moment any Lisp buffer
+;;;; turns on sly-mode — opening a single .lisp file launches SBCL.
+;;;;
+;;;; Setting `sly-auto-start' to 'never is NOT sufficient: the hook
+;;;; let-binds it to 'always around its own call, so it overrides whatever
+;;;; you configure. The hook itself has to be removed.
+;;;;
+;;;; Side benefit: that hook also installs `+common-lisp--cleanup-sly-maybe-h'
+;;;; on `kill-buffer-hook', which quits the Lisp when the last SLY buffer
+;;;; closes. Harmless for an inferior SBCL, but for LispWorks — where SLY is
+;;;; attached to a long-running external image — it would kill your session.
+;;;; Removing the hook removes that hazard too.
+;;;; ─────────────────────────────────────────────────────────────
+(after! sly
+  (remove-hook 'sly-mode-hook #'+common-lisp-init-sly-h)
+  (setq sly-auto-start 'never
+        ;; `sly' otherwise offers to reuse an open connection; our own
+        ;; command decides that, so keep plain `sly' predictable.
+        sly-command-switch-to-existing-lisp 'never))
+
 (defun my/sly-connect-lispworks ()
-  "Attach SLY to the LispWorks Slynk server on localhost:4005."
+  "Attach SLY to a LispWorks Slynk server on localhost:4005.
+Errors with setup instructions when nothing is listening."
   (interactive)
-  (sly-connect "localhost" 4005))
+  (condition-case nil
+      (sly-connect "localhost" 4005)
+    (file-error
+     (user-error
+      (concat "Nothing listening on localhost:4005. "
+              "In the LispWorks listener: (ql:quickload :slynk) "
+              "then (slynk:create-server :port 4005 :dont-close t)")))))
+
+(defun my/sly-repl-dwim (&optional ask)
+  "Show the SLY REPL, asking which Lisp to use when not connected.
+
+When a connection already exists, just switch to its REPL. Otherwise
+ask for SBCL (started here as an inferior process) or LispWorks
+(attached to an existing image on localhost:4005).
+
+With \\[universal-argument] ASK, prompt even when connected, so you can
+open a second Lisp alongside the first."
+  (interactive "P")
+  (if (and (sly-connected-p) (not ask))
+      (sly-mrepl)
+    (let ((read-answer-short t))
+      (pcase (read-answer
+              "Which Lisp? "
+              '(("sbcl"      ?s "start a new inferior SBCL")
+                ("lispworks" ?l "attach to LispWorks on localhost:4005")
+                ("quit"      ?q "do nothing")))
+        ("sbcl"      (sly 'sbcl))
+        ("lispworks" (my/sly-connect-lispworks))
+        (_           (message "No REPL started"))))))
+
+;; Take over C-c C-z, which sly-mrepl binds directly in `sly-mode-map'.
+;; `after! sly-mrepl' matters — binding earlier gets clobbered when the
+;; contrib loads.
+(after! sly-mrepl
+  (define-key sly-mode-map (kbd "C-c C-z") #'my/sly-repl-dwim))
 
 ;; Offline HyperSpec — after first use it's cached and works without network.
 (after! clhs
@@ -169,7 +227,8 @@
 ;;;; ─────────────────────────────────────────────────────────────
 (map! :leader
       (:prefix-map ("r" . "run/repl")
-       :desc "SLY: start SBCL"              "s" #'sly
+       :desc "SLY: ask SBCL or LispWorks"   "s" #'my/sly-repl-dwim
+       :desc "SLY: start SBCL"              "S" (cmd! (sly 'sbcl))
        :desc "SLY: connect LispWorks :4005" "w" #'my/sly-connect-lispworks
        :desc "SLY: connect (prompt)"        "C" #'sly-connect
        :desc "CIDER: jack-in Clojure"       "c" #'cider-jack-in-clj
