@@ -29,8 +29,7 @@
        workspaces                        ; tab workspaces (C-c w prefix)
        indent-guides
        (emoji +unicode)                  ; safer in terminals than +ascii
-       ;; ophints and vi-tilde-fringe omitted: both exist to serve evil's
-       ;; operator-pending state and vim's past-EOB tildes.
+       (treemacs +lsp)
 
        :editor
        ;; NO evil — vanilla Emacs keybindings throughout.

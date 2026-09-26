@@ -10,7 +10,7 @@
 ;;;; Terminal-friendly UI
 ;;;; ─────────────────────────────────────────────────────────────
 ;; A theme that renders well in 256-color and truecolor terminals.
-(setq doom-theme 'dracula)
+(setq doom-theme 'my-doom-dracula)
 
 ;; Font settings only apply in GUI; keep here so switching to GUI still works.
 (setq doom-font (font-spec :family "JetBrains Mono" :size 13))
