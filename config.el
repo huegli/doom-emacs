@@ -35,10 +35,22 @@
 ;; answers that query itself ("tmux 3.7c") instead of forwarding it to
 ;; iTerm2, so the match always fails and mouse support never auto-enables
 ;; under tmux -- confirmed 2026-09-28 against the installed tmux binary.
+;;
+;; xterm-mouse-mode only gets clicks and selection working: it decodes
+;; SGR mouse sequences into Emacs mouse/wheel events, but the code that
+;; *binds* <wheel-up>/<wheel-down> to scrolling lives in mwheel.el, and
+;; that file is normally pulled in by GUI startup code (term/ns-win.el,
+;; term/x-win.el) which never runs on a terminal-only frame. Confirmed
+;; via `emacs -Q --batch': (featurep 'mwheel) is nil at startup, and
+;; (lookup-key (current-global-map) [wheel-up]) is nil until
+;; `mouse-wheel-mode' is invoked explicitly -- hence "<wheel-up> is
+;; undefined". Force it on here the same way as xterm-mouse-mode above.
 (add-hook 'tty-setup-hook
           (lambda ()
             (unless xterm-mouse-mode
-              (xterm-mouse-mode 1))))
+              (xterm-mouse-mode 1))
+            (unless (and (featurep 'mwheel) mouse-wheel-mode)
+              (mouse-wheel-mode 1))))
 
 ;; Line numbers off in terminal for speed; toggle with C-c t l.
 (setq display-line-numbers-type nil)

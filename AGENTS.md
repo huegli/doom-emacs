@@ -108,6 +108,16 @@ this checkout. Commit identity:
   user's `~/.tmux.conf`, and over SSH. Emacs 31 enables it by default
   outside tmux; inside tmux it does not (see Environment section), so
   `config.el` forces it on unconditionally via `tty-setup-hook`.
+- **Mouse-wheel scrolling** (`<wheel-up>`/`<wheel-down>` "is undefined",
+  fixed 2026-09-28): `xterm-mouse-mode` only decodes SGR mouse sequences
+  into Emacs events (clicks/selection); the *binding* of those wheel
+  events to scrolling lives in `mwheel.el`, which is normally loaded by
+  GUI startup code (`term/ns-win.el`, `term/x-win.el`) that never runs
+  on a terminal-only frame. Verified with `emacs -Q --batch`:
+  `(featurep 'mwheel)` is nil at startup and `[wheel-up]` is unbound in
+  `global-map` until `mouse-wheel-mode` is invoked explicitly.
+  `config.el`'s `tty-setup-hook` now forces `(mouse-wheel-mode 1)`
+  alongside `xterm-mouse-mode`.
 
 ## Rules for making changes
 
