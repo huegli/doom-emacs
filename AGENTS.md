@@ -27,7 +27,9 @@ iTerm2 + tmux, never in GUI Emacs, and uses vanilla Emacs keybindings
   `--dynamic-space-size 4096`) and LispWorks (a long-running external
   image with a Slynk server on localhost:4005 — attach with
   `sly-connect`, never quit it from Emacs).
-- Remote Login (sshd) is OFF on this machine.
+- Remote Login (sshd) is ON on this machine (verified 2026-09-27:
+  `com.openssh.sshd` loaded via launchd, port 22 answers with
+  `SSH-2.0-OpenSSH_10.3`).
 
 ## Authoritative version and three-way sync
 
