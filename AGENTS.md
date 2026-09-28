@@ -14,8 +14,14 @@ iTerm2 + tmux, never in GUI Emacs, and uses vanilla Emacs keybindings
 - Machine: Mac mini M2, user `nikolai`.
 - Emacs: Homebrew `emacs` 31.1 at `/opt/homebrew/bin/emacs`
   (Cellar `emacs/31.1_1`). Emacs 31 turns `xterm-mouse-mode` on by
-  default in compatible terminals; `(tty +osc)` therefore does not
-  need to add it (Doom's tty module only adds it below Emacs 31).
+  default in compatible terminals — but only outside tmux. The
+  detection queries the terminal for XTVERSION and checks the reply
+  against a small allowlist (iTerm2, kitty, foot, alacritty, contour);
+  tmux answers that query itself (`"tmux 3.7c"`, confirmed via
+  `strings $(which tmux)`) instead of forwarding it to iTerm2, so the
+  match always fails inside tmux. `config.el` therefore adds its own
+  unconditional `xterm-mouse-mode` enable to `tty-setup-hook` to cover
+  that gap (Doom's `(tty +osc)` module only adds it below Emacs 31).
 - Doom Emacs: checkout at `~/.config/emacs`. **Non-standard layout**:
   Doom modules live at `~/.config/emacs/sources/doom+/modules/`
   (not `modules/`); packages are at `~/.config/emacs/.local/straight/repos/`.
@@ -99,7 +105,9 @@ this checkout. Commit identity:
   racket all provide CAPFs natively, which corfu consumes directly.
 - **Terminal mouse** (verified 2026-09-25 by feeding real SGR mouse
   sequences to Emacs on a PTY): works directly, inside tmux with this
-  user's `~/.tmux.conf`, and over SSH. Emacs 31 enables it by default.
+  user's `~/.tmux.conf`, and over SSH. Emacs 31 enables it by default
+  outside tmux; inside tmux it does not (see Environment section), so
+  `config.el` forces it on unconditionally via `tty-setup-hook`.
 
 ## Rules for making changes
 

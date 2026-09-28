@@ -18,6 +18,8 @@
 ;; Terminal mouse, clipboard, cursor shape, and key disambiguation are all
 ;; handled by the `(tty +osc)' module in init.el — nothing needed here:
 ;;   • xterm-mouse-mode        added to tty-setup-hook by the module
+;;                             below Emacs 31; on 31+ Emacs enables it
+;;                             itself (see hook below for the tmux gap)
 ;;   • clipboard              clipetty / OSC 52 (the +osc flag)
 ;;   • key disambiguation     kkp (Kitty keyboard protocol), which also
 ;;                            separates C-i from TAB
@@ -26,6 +28,17 @@
 ;; that is a competing solution to the same problem kkp solves, and running
 ;; both risks garbled modifier keys. If a chord like C-c C-l misbehaves in
 ;; the terminal, check `M-x kkp-status' before adding anything back here.
+
+;; Emacs 31's automatic xterm-mouse-mode detection queries the terminal
+;; (XTVERSION) and only enables itself if the reply names a known-good
+;; terminal (iTerm2, kitty, foot, alacritty, contour). Inside tmux, tmux
+;; answers that query itself ("tmux 3.7c") instead of forwarding it to
+;; iTerm2, so the match always fails and mouse support never auto-enables
+;; under tmux -- confirmed 2026-09-28 against the installed tmux binary.
+(add-hook 'tty-setup-hook
+          (lambda ()
+            (unless xterm-mouse-mode
+              (xterm-mouse-mode 1))))
 
 ;; Line numbers off in terminal for speed; toggle with C-c t l.
 (setq display-line-numbers-type nil)
