@@ -31,19 +31,20 @@ iTerm2 + tmux, never in GUI Emacs, and uses vanilla Emacs keybindings
   `com.openssh.sshd` loaded via launchd, port 22 answers with
   `SSH-2.0-OpenSSH_10.3`).
 
-## Authoritative version and three-way sync
+## Authoritative version and two-way sync
 
 1. **Authoritative**: `~/.config/doom` on the Mac mini M2 (git repo,
-   branch `main`).
+   branch `main`) — this is also the agent's working directory; there
+   is no separate sandboxed mirror.
 2. **GitHub mirror**: <https://github.com/huegli/doom-emacs> (public,
    default branch `main`).
-3. Agent working mirror (sandbox, not tracked anywhere).
 
-Any change must end up in all three. The device shell is sandboxed
-(no network, no PTY allocation, no `.git` writes), so the flow is:
-edit in the mirror → verify → transfer to the device → commit and
-push from a sandbox clone of the GitHub repo → the **user** runs
-`git pull` on the device (the agent cannot). Commit identity:
+Any change must end up in both. The agent shell has full `git` and
+network access when working in `~/.config/doom` (verified 2026-09-27:
+`git add`, `git commit`, and `git push origin main` all succeeded
+directly), so the flow is simply: edit → verify → commit → push.
+No transfer-to-device step and no user-run `git pull` are needed for
+this checkout. Commit identity:
 `Nikolai Schlegel <nikolai.schlegel@gmail.com>`.
 
 ## File map
@@ -110,8 +111,9 @@ push from a sandbox clone of the GitHub repo → the **user** runs
    `use-package!`-style macros — that failure is a harness artifact.
 3. Multi-edit batches are atomic: one failing edit silently rolls
    back the whole batch. Re-verify after any partial failure.
-4. After pushing to the device, tell the user to run
-   `cd ~/.config/doom && git pull` (the agent's device shell cannot).
+4. Commit and push directly from `~/.config/doom` (see sync section
+   above) — no separate transfer or user-run `git pull` needed for
+   this checkout.
 5. Never suggest `sly-quit-lisp` workflows for the LispWorks
    connection; the image is started and owned outside Emacs.
 6. `IS-MAC` is obsolete — use `(featurep :system 'macos)`.
