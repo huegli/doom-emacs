@@ -30,9 +30,12 @@ iTerm2 + tmux, never in GUI Emacs, and uses vanilla Emacs keybindings
   `default-terminal tmux-256color`, `allow-passthrough on`, built for
   iTerm2 `-CC` integration mode — see `~/.tmux.conf`).
 - Lisps: SBCL 2.6.8 (Homebrew, started as an inferior process with
-  `--dynamic-space-size 4096`) and LispWorks (a long-running external
-  image with a Slynk server on localhost:4005 — attach with
-  `sly-connect`, never quit it from Emacs).
+  `--dynamic-space-size 4096`) and LispWorks, in two forms: (1) a
+  long-running external image with a Slynk server on localhost:4005 —
+  attach with `sly-connect`, never quit it from Emacs; and (2)
+  `~/.local/bin/sly-lw-console`, a saved LispWorks 8.1 image (Mach-O
+  executable, not on this repo's tracked files) that SLY launches as
+  its own inferior process, the same way it launches SBCL.
 - Remote Login (sshd) is ON on this machine (verified 2026-09-27:
   `com.openssh.sshd` loaded via launchd, port 22 answers with
   `SSH-2.0-OpenSSH_10.3`).
@@ -92,8 +95,10 @@ this checkout. Commit identity:
   switches to the existing REPL via `(call-interactively #'sly-mrepl)`
   — a plain `(sly-mrepl)` call silently returns the buffer without
   displaying it, because the display logic lives in the `interactive`
-  spec. When not connected, asks: `s` = inferior SBCL, `l` = attach
-  to LispWorks on :4005. `C-u` forces the question even when
+  spec. When not connected, asks: `s` = inferior SBCL, `l` = inferior
+  LispWorks console (`sly-lw-console`, via `sly-lisp-implementations`),
+  `c` = attach to an already-running LispWorks image's Slynk on :4005
+  (`my/sly-connect-lispworks`). `C-u` forces the question even when
   connected.
 - **`C-c C-z` is taken via `[remap sly-mrepl]`**, not `define-key`:
   `sly-mrepl.el` binds `C-c C-z` inside its `define-sly-contrib`
@@ -155,3 +160,9 @@ this checkout. Commit identity:
 9. User commits on top: restored `rainbow-delimiters` package,
    `(tty +osc)` cleanup, activated `my-doom-dracula` theme,
    added `(treemacs +lsp)`.
+10. Added a third SLY launch path (2026-09-28): `sly-lw-console`, a
+    saved LispWorks image at `~/.local/bin/sly-lw-console`, registered
+    in `sly-lisp-implementations` and launched by SLY as an inferior
+    process (`l` in the `my/sly-repl-dwim` prompt), alongside the
+    existing inferior-SBCL (`s`) and Slynk-attach (`c`, now moved off
+    `l`) paths.

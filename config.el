@@ -94,19 +94,23 @@
 ;;;; ─────────────────────────────────────────────────────────────
 ;;;; Common Lisp — SLY
 ;;;;
-;;;;   SBCL      : launched by SLY as an inferior process.
-;;;;   LispWorks : connect to an already-running Slynk server on
-;;;;               127.0.0.1:4005. Start Slynk inside LispWorks with:
-;;;;                 (ql:quickload :slynk)
-;;;;                 (slynk:create-server :port 4005 :dont-close t)
-;;;;               or load ~/quicklisp/dists/.../slynk-loader.lisp directly.
+;;;;   SBCL               : launched by SLY as an inferior process.
+;;;;   LispWorks console  : ~/.local/bin/sly-lw-console, a saved LispWorks
+;;;;                        image, launched by SLY as an inferior process
+;;;;                        the same way as SBCL.
+;;;;   LispWorks (attach) : connect to an already-running Slynk server on
+;;;;                        127.0.0.1:4005. Start Slynk inside LispWorks with:
+;;;;                          (ql:quickload :slynk)
+;;;;                          (slynk:create-server :port 4005 :dont-close t)
+;;;;                        or load ~/quicklisp/dists/.../slynk-loader.lisp.
 ;;;; ─────────────────────────────────────────────────────────────
 (after! sly
   (setq inferior-lisp-program "sbcl"
         sly-default-lisp     'sbcl)
 
   (setq sly-lisp-implementations
-        '((sbcl ("sbcl" "--dynamic-space-size" "4096"))))
+        '((sbcl              ("sbcl" "--dynamic-space-size" "4096"))
+          (lispworks-console ("sly-lw-console"))))
 
   ;; Default host/port for `sly-connect' — matches your LispWorks Slynk.
   (setq sly-net-coding-system 'utf-8-unix)
@@ -155,8 +159,10 @@ Errors with setup instructions when nothing is listening."
   "Show the SLY REPL, asking which Lisp to use when not connected.
 
 When a connection already exists, just switch to its REPL. Otherwise
-ask for SBCL (started here as an inferior process) or LispWorks
-(attached to an existing image on localhost:4005).
+ask for SBCL (started here as an inferior process), the LispWorks
+console image (started here as an inferior process — see
+`sly-lisp-implementations'), or an already-running LispWorks image
+(attached to via Slynk on localhost:4005).
 
 With \\[universal-argument] ASK, prompt even when connected, so you can
 open a second Lisp alongside the first."
@@ -172,12 +178,14 @@ open a second Lisp alongside the first."
     (let ((read-answer-short t))
       (pcase (read-answer
               "Which Lisp? "
-              '(("sbcl"      ?s "start a new inferior SBCL")
-                ("lispworks" ?l "attach to LispWorks on localhost:4005")
-                ("quit"      ?q "do nothing")))
-        ("sbcl"      (sly 'sbcl))
-        ("lispworks" (my/sly-connect-lispworks))
-        (_           (message "No REPL started"))))))
+              '(("sbcl"    ?s "start a new inferior SBCL")
+                ("console" ?l "start the LispWorks console (sly-lw-console)")
+                ("connect" ?c "attach to LispWorks Slynk on localhost:4005")
+                ("quit"    ?q "do nothing")))
+        ("sbcl"    (sly 'sbcl))
+        ("console" (sly 'lispworks-console))
+        ("connect" (my/sly-connect-lispworks))
+        (_         (message "No REPL started"))))))
 
 ;; Take over C-c C-z.
 ;;
