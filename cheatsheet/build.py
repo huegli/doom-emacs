@@ -314,7 +314,7 @@ DOOM = [
     ("C-h m",         "Mode bindings"),
     ("C-c",           "which-key: wait"),
     (None, "REPL launcher (C-c r …)"),
-    ("s",             "Start SBCL"),
+    ("s",             "Ask SBCL/console/attach"),
     ("w",             "Connect LispWorks :4005"),
     ("C",             "sly-connect (prompt)"),
     ("c / j",         "CIDER Clojure / cljs"),
@@ -415,7 +415,7 @@ def build_pdf(out_path):
     # Page 1 columns
     story += make_col(
         "Common Lisp — SLY",
-        "sbcl (inferior) + LispWorks (slynk:4005)",
+        "sbcl + LW console (inferior); LW attach (slynk:4005)",
         kb_table(SLY, key_w, desc_w),
     )
     story.append(Spacer(1, 0.02 * inch))
