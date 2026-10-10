@@ -313,3 +313,28 @@ open a second Lisp alongside the first."
 ;; Terminal Magit is heavy; keep status hunks visible.
 (after! magit
   (setq magit-diff-refine-hunk 'all))
+
+;;;; Omarchy Linux integration
+;;;; ─────────────────────────────────────────────────────────────
+;; Loads the omarchy-emacs package's integration (theme + font sync, file
+;; watchers, shell setup) when it is installed; a no-op on the Mac.
+;; That file is written for a vanilla ~/.config/emacs setup, so two of its
+;; assumptions need adjusting under Doom:
+;;  - It finds `omarchy-theme' with a plain `locate-file' over
+;;    `custom-theme-load-path', which skips symbol entries. Doom's themes
+;;    dir is only there as the symbol `custom-theme-directory', and the
+;;    string it adds itself (~/.config/emacs/themes) is Doom's install dir,
+;;    so the lookup returns nil and `load-file' signals at startup.
+;;  - It points bash's --rcfile at `user-emacs-directory', which Doom
+;;    redirects to its cache dir; our copy lives in `doom-user-dir'.
+(let ((omarchy--system-file "/usr/share/omarchy-emacs/config/omarchy.el"))
+  (when (file-exists-p omarchy--system-file)
+    (add-to-list 'custom-theme-load-path
+                 (expand-file-name "themes/" doom-user-dir))
+    (load omarchy--system-file)
+    ;; Doom loads `doom-theme' after config.el and disables other themes,
+    ;; so the Omarchy theme must be the Doom theme to stay visible.
+    (setq doom-theme 'omarchy)
+    (setq explicit-bash-args
+          `("--noediting" "--rcfile"
+            ,(expand-file-name "shell-bashrc" doom-user-dir) "-i"))))

@@ -9,6 +9,11 @@ development on a Mac mini M2. The user (Nikolai Schlegel) works in
 iTerm2 + tmux, never in GUI Emacs, and uses vanilla Emacs keybindings
 (`C-c` leader, `C-c l` localleader) — not Evil mode.
 
+The same repository is also checked out on a second machine running
+Omarchy Linux (see "Second machine" below). `config.el` loads the
+Omarchy integration only when that machine's system file exists, so
+the Mac setup is unaffected.
+
 ## Environment (verified facts)
 
 - Machine: Mac mini M2, user `nikolai`.
@@ -40,11 +45,28 @@ iTerm2 + tmux, never in GUI Emacs, and uses vanilla Emacs keybindings
   `com.openssh.sshd` loaded via launchd, port 22 answers with
   `SSH-2.0-OpenSSH_10.3`).
 
+### Second machine: Omarchy Linux (verified 2026-10-09)
+
+- aarch64 Arch Linux running Omarchy 4.0.3rc4-2, user `nikolai`.
+- Emacs: `emacs-wayland` 31.1 (pgtk build) at `/usr/bin/emacs`.
+- Doom: same non-standard layout as on the Mac (`~/.config/emacs`,
+  modules under `sources/doom+/modules/`).
+- AUR package `omarchy-emacs` 1.10.1 installs the integration under
+  `/usr/share/omarchy-emacs/config/` (`omarchy.el`, `init.el`,
+  `shell-bashrc`, `themes/omarchy-theme.el`). The active theme's
+  generated colors are in `~/.local/state/omarchy/current/theme/`
+  (`omarchy-colors.el`, `colors.toml`).
+- SBCL is **not** installed here and there is no LispWorks; the
+  Homebrew `themes/dracula-theme.el` symlink dangles.
+
 ## Authoritative version and two-way sync
 
 1. **Authoritative**: `~/.config/doom` on the Mac mini M2 (git repo,
    branch `main`) — this is also the agent's working directory; there
-   is no separate sandboxed mirror.
+   is no separate sandboxed mirror. The Omarchy Linux machine has its
+   own `~/.config/doom` checkout of the same repo; commit and push from
+   whichever machine you are on, and `git pull` on the other before
+   editing there.
 2. **GitHub mirror**: <https://github.com/huegli/doom-emacs> (public,
    default branch `main`).
 
@@ -75,6 +97,13 @@ this checkout. Commit identity:
 - `themes/my-doom-dracula-theme.el` — hand-built Dracula variant.
 - `themes/dracula-theme.el` — **symlink into Homebrew**; machine
   specific, do not replace with a regular file.
+- `themes/omarchy-theme.el` — copy of the `omarchy-emacs` package's
+  theme (Omarchy machine only; it `require`s `omarchy-colors`, which
+  exists only there). Does not track package upgrades — re-copy from
+  `/usr/share/omarchy-emacs/config/themes/` after updating the package.
+- `shell-bashrc` — rcfile for `M-x shell` on the Omarchy machine
+  (copied from the package): sources Omarchy's bash defaults without
+  readline bindings or starship escape sequences.
 - `cheatsheet/` — Python sources that build the two PDF cheat
   sheets. PDFs are gitignored build artifacts. Constraints: Letter
   landscape, 2 pages per sheet; DM Sans has no Greek or arrow
@@ -124,6 +153,23 @@ this checkout. Commit identity:
   `config.el`'s `tty-setup-hook` now forces `(mouse-wheel-mode 1)`
   alongside `xterm-mouse-mode`.
 
+- **Omarchy integration in Doom** (fixed 2026-10-09): `config.el`
+  loads `/usr/share/omarchy-emacs/config/omarchy.el` only if it
+  exists. That file assumes a vanilla `~/.config/emacs` and breaks
+  under Doom in three ways, each handled in `config.el`:
+  (1) it finds `omarchy-theme` with a plain `locate-file` over
+  `custom-theme-load-path`, which skips symbol entries; Doom lists
+  `~/.config/doom/themes/` only as the symbol `custom-theme-directory`,
+  so the lookup returned nil and startup died with
+  `load-file(nil)` / `wrong-type-argument stringp nil`; fixed by
+  adding the themes dir as a string first. (2) Doom loads
+  `doom-theme` after `config.el` and disables other themes, so
+  `doom-theme` is set to `'omarchy` there. (3) It points bash's
+  `--rcfile` at `user-emacs-directory`, which Doom redirects to its
+  cache dir; `explicit-bash-args` is reset to use `doom-user-dir`.
+  The package's `init.el` and the `omarchy.el` shim are not used —
+  Doom never reads them.
+
 ## Rules for making changes
 
 1. Verify assumptions against the installed sources on the device —
@@ -140,6 +186,9 @@ this checkout. Commit identity:
 5. Never suggest `sly-quit-lisp` workflows for the LispWorks
    connection; the image is started and owned outside Emacs.
 6. `IS-MAC` is obsolete — use `(featurep :system 'macos)`.
+7. Keep machine-specific code guarded (by `featurep :system` or a
+   `file-exists-p` on the system file it needs) so one `config.el`
+   starts cleanly on both the Mac and the Omarchy machine.
 
 ## History (what has been built here so far)
 
@@ -166,3 +215,7 @@ this checkout. Commit identity:
     process (`l` in the `my/sly-repl-dwim` prompt), alongside the
     existing inferior-SBCL (`s`) and Slynk-attach (`c`, now moved off
     `l`) paths.
+11. Omarchy Linux support (2026-10-09): second checkout on an aarch64
+    Omarchy 4 machine; `config.el` loads the `omarchy-emacs` package's
+    integration with Doom-specific fixes (see decisions above);
+    added `themes/omarchy-theme.el` and `shell-bashrc`.
