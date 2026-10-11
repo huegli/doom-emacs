@@ -9,11 +9,20 @@
 ;;;; ─────────────────────────────────────────────────────────────
 ;;;; Terminal-friendly UI
 ;;;; ─────────────────────────────────────────────────────────────
+;; Host-specific UI: the "omarchy" machine leaves the theme to the Omarchy
+;; integration below and uses the Nerd Font build of JetBrains Mono.
+(defconst my/omarchy-host-p (string= (system-name) "omarchy")
+  "Non-nil when running on the Omarchy Linux machine.")
+
 ;; A theme that renders well in 256-color and truecolor terminals.
-(setq doom-theme 'my-doom-dracula)
+(unless my/omarchy-host-p
+  (setq doom-theme 'my-doom-dracula))
 
 ;; Font settings only apply in GUI; keep here so switching to GUI still works.
-(setq doom-font (font-spec :family "JetBrains Mono" :size 13))
+(setq doom-font (font-spec :family (if my/omarchy-host-p
+                                       "JetBrains Mono Nerd Font"
+                                     "JetBrains Mono")
+                           :size 13))
 
 ;; Terminal mouse, clipboard, cursor shape, and key disambiguation are all
 ;; handled by the `(tty +osc)' module in init.el — nothing needed here:
