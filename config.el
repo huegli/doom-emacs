@@ -9,14 +9,13 @@
 ;;;; ─────────────────────────────────────────────────────────────
 ;;;; Terminal-friendly UI
 ;;;; ─────────────────────────────────────────────────────────────
-;; Host-specific UI: the "omarchy" machine leaves the theme to the Omarchy
-;; integration below and uses the Nerd Font build of JetBrains Mono.
+;; Host-specific UI: the "omarchy" machine uses the Nerd Font build of
+;; JetBrains Mono. The theme is the same everywhere.
 (defconst my/omarchy-host-p (string= (system-name) "omarchy")
   "Non-nil when running on the Omarchy Linux machine.")
 
 ;; A theme that renders well in 256-color and truecolor terminals.
-(unless my/omarchy-host-p
-  (setq doom-theme 'my-doom-dracula))
+(setq doom-theme 'my-doom-dracula)
 
 ;; Font settings only apply in GUI; keep here so switching to GUI still works.
 (setq doom-font (font-spec :family (if my/omarchy-host-p
@@ -340,10 +339,12 @@ open a second Lisp alongside the first."
   (when (file-exists-p omarchy--system-file)
     (add-to-list 'custom-theme-load-path
                  (expand-file-name "themes/" doom-user-dir))
+    ;; Keep `my-doom-dracula' on every machine: make the package's theme
+    ;; application a no-op (it runs at load and on every Omarchy theme
+    ;; change). Advice added before the load survives the later `defun'.
+    ;; Font syncing (`omarchy-apply-font') is left untouched.
+    (advice-add 'omarchy-apply-theme :override #'ignore)
     (load omarchy--system-file)
-    ;; Doom loads `doom-theme' after config.el and disables other themes,
-    ;; so the Omarchy theme must be the Doom theme to stay visible.
-    (setq doom-theme 'omarchy)
     (setq explicit-bash-args
           `("--noediting" "--rcfile"
             ,(expand-file-name "shell-bashrc" doom-user-dir) "-i"))))

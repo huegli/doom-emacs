@@ -162,9 +162,12 @@ this checkout. Commit identity:
   `~/.config/doom/themes/` only as the symbol `custom-theme-directory`,
   so the lookup returned nil and startup died with
   `load-file(nil)` / `wrong-type-argument stringp nil`; fixed by
-  adding the themes dir as a string first. (2) Doom loads
-  `doom-theme` after `config.el` and disables other themes, so
-  `doom-theme` is set to `'omarchy` there. (3) It points bash's
+  adding the themes dir as a string first. (2) Theme: since
+  2026-10-14 `my-doom-dracula` is used on every machine;
+  `omarchy-apply-theme` is overridden with `ignore` (advice added
+  before loading, survives the package's `defun`) so neither startup
+  nor Omarchy theme changes replace it. Font sync still runs.
+  (3) It points bash's
   `--rcfile` at `user-emacs-directory`, which Doom redirects to its
   cache dir; `explicit-bash-args` is reset to use `doom-user-dir`.
   The package's `init.el` and the `omarchy.el` shim are not used —
