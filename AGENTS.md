@@ -114,6 +114,19 @@ this checkout. Commit identity:
   auto-installed. Re-diff against `/usr/share/applications/emacs.desktop`
   after Emacs package upgrades. Shell use is covered by the user's
   `emacs -nw` alias.
+- `omarchy/emacsclient.desktop` — launcher override for the Emacs
+  daemon client on the Omarchy machine. A daemon has no frame type of
+  its own; each client picks it. The system entry uses
+  `emacsclient --create-frame` (GUI); this one runs
+  `omarchy-launch-tui --app-id=org.omarchy.emacsclient emacsclient -t
+  -a "" %F` (`-t` = terminal frame, `-a ""` = start a daemon if none
+  runs). Its "New Instance" action runs `emacs -nw`.
+  `StartupWMClass=org.omarchy.emacsclient` matches the `--app-id`.
+  The `emacs.service` user unit (`/usr/bin/emacs --fg-daemon`) needs no
+  change. Install to `~/.local/share/applications/emacsclient.desktop`.
+  Untested with the daemon running (as of 2026-10-15). Note that
+  `omarchy.el` also calls `server-start`, so any plain Emacs session is
+  a server too.
 - `cheatsheet/` — Python sources that build the two PDF cheat
   sheets. PDFs are gitignored build artifacts. Constraints: Letter
   landscape, 2 pages per sheet; DM Sans has no Greek or arrow
@@ -235,3 +248,5 @@ this checkout. Commit identity:
 12. Terminal-only launcher on Omarchy (2026-10-14): added
     `omarchy/emacs.desktop`; `my-doom-dracula` now used on all hosts
     with the package's `omarchy-apply-theme` disabled.
+13. Terminal-only daemon client launcher (2026-10-15): added
+    `omarchy/emacsclient.desktop`.
