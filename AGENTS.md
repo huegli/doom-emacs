@@ -104,6 +104,16 @@ this checkout. Commit identity:
 - `shell-bashrc` — rcfile for `M-x shell` on the Omarchy machine
   (copied from the package): sources Omarchy's bash defaults without
   readline bindings or starship escape sequences.
+- `omarchy/emacs.desktop` — app-launcher override for the Omarchy
+  machine (Mac ignores it). The system entry runs plain `emacs %F`,
+  which opens a Wayland GUI window; this one runs
+  `omarchy-launch-tui emacs -nw %F` (opens in Omarchy's styled
+  terminal) and sets `StartupWMClass=org.omarchy.emacs` to match the
+  app-id that helper assigns. Install by copying to
+  `~/.local/share/applications/emacs.desktop`; not symlinked or
+  auto-installed. Re-diff against `/usr/share/applications/emacs.desktop`
+  after Emacs package upgrades. Shell use is covered by the user's
+  `emacs -nw` alias.
 - `cheatsheet/` — Python sources that build the two PDF cheat
   sheets. PDFs are gitignored build artifacts. Constraints: Letter
   landscape, 2 pages per sheet; DM Sans has no Greek or arrow
@@ -222,3 +232,6 @@ this checkout. Commit identity:
     Omarchy 4 machine; `config.el` loads the `omarchy-emacs` package's
     integration with Doom-specific fixes (see decisions above);
     added `themes/omarchy-theme.el` and `shell-bashrc`.
+12. Terminal-only launcher on Omarchy (2026-10-14): added
+    `omarchy/emacs.desktop`; `my-doom-dracula` now used on all hosts
+    with the package's `omarchy-apply-theme` disabled.
