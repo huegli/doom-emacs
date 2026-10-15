@@ -119,12 +119,15 @@ this checkout. Commit identity:
   its own; each client picks it. The system entry uses
   `emacsclient --create-frame` (GUI); this one runs
   `omarchy-launch-tui --app-id=org.omarchy.emacsclient emacsclient -t
-  -a "" %F` (`-t` = terminal frame, `-a ""` = start a daemon if none
+  --alternate-editor= %F` (`-t` = terminal frame, empty `--alternate-editor=` = start a daemon if none
   runs). Its "New Instance" action runs `emacs -nw`.
   `StartupWMClass=org.omarchy.emacsclient` matches the `--app-id`.
   The `emacs.service` user unit (`/usr/bin/emacs --fg-daemon`) needs no
   change. Install to `~/.local/share/applications/emacsclient.desktop`.
-  Untested with the daemon running (as of 2026-10-15). Note that
+  Use `--alternate-editor=` rather than `-a ""`: `xdg-terminal-exec`
+  drops the empty argument, `emacsclient` errors out and the window
+  closes at once. Tested 2026-10-15 with the running `emacs.service`
+  daemon: opens a terminal frame (`display-graphic-p` nil). Note that
   `omarchy.el` also calls `server-start`, so any plain Emacs session is
   a server too.
 - `cheatsheet/` — Python sources that build the two PDF cheat
