@@ -276,6 +276,18 @@ uv tool install pyright
 - **Key disambiguation:** `(tty +osc)` also enables [kkp](https://github.com/benotn/kkp), the Kitty keyboard protocol, which lets the terminal distinguish chords it otherwise couldn't — including `C-i` from `TAB`. This is why `config.el` deliberately does *not* set `xterm-extra-capabilities` to `modifyOtherKeys`: that is a competing mechanism for the same problem, and enabling both risks garbled modifiers. If a chord misbehaves under `emacs -nw`, run `M-x kkp-status` to confirm the terminal negotiated kkp before changing anything.
 - **Fast startup:** `emacs --daemon` once, then `emacsclient -nw` for near-instant launches.
 
+## Treemacs auto-sidebar
+
+`(treemacs +lsp)` is enabled, but it opens automatically only when the terminal is wide enough:
+
+- **Threshold:** `my/treemacs-min-width` (default 100 columns).
+- **Project-only:** the sidebar opens only when the current buffer is inside a real project (`doom-project-root` non-nil). Outside a project, or in `~`, it stays closed.
+- **Live resize:** `window-size-change-functions` syncs the sidebar after a 0.2s debounce, so dragging an iTerm2/tmux pane edge across the threshold updates it.
+- **Manual override:** any manual open or close (`C-c o p`, `q` inside treemacs, `C-x 0`, etc.) disables the automation globally. Run `M-x my/treemacs-auto-resume` to turn it back on.
+- **Startup from the dashboard:** the sidebar is pending until the first file is opened, then it follows the frame width.
+
+The resize hook also fires on window splits (`C-x 3` / `C-x 1`) and at startup; the handler is idempotent, so it only acts when the width state actually changes.
+
 ## Daily commands
 
 ### General (Doom leader = `C-c`)

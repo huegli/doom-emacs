@@ -300,6 +300,115 @@ open a second Lisp alongside the first."
 (load! "unify-lisp-keys")
 
 ;;;; ─────────────────────────────────────────────────────────────
+;;;; Treemacs: auto sidebar by width
+;;;; ─────────────────────────────────────────────────────────────
+;; Open treemacs automatically on wide terminals (>= 100 columns), close it
+;; on narrow ones, and follow live resizes in iTerm2/tmux. A manual open/close
+;; anywhere disables the automation globally until `my/treemacs-auto-resume'.
+;;
+;; Verified 2026-10-20: `window-size-change-functions' fires on TTY resizes,
+;; initial startup, and window splits (`C-x 3' / `C-x 1'); the handler must be
+;; idempotent, so all work is gated on a state change.
+;;
+;; Open risk: this path autoloads treemacs during startup. A previous attempt
+;; to `(require 'treemacs)' in a daemon/emacsclient session hung; if that
+;; reproduces here, add a `(daemonp)' guard around the auto-open path.
+
+(defcustom my/treemacs-min-width 100
+  "Minimum frame width (columns) for automatically showing the treemacs sidebar."
+  :type 'integer)
+
+(defvar my/treemacs-auto-debounce-delay 0.2
+  "Seconds to wait before syncing treemacs after a resize.")
+
+(defvar my/treemacs--user-override nil
+  "Non-nil when the user manually changed sidebar visibility.
+Stops the auto-width behaviour in all frames until
+`my/treemacs-auto-resume' clears it.")
+
+(defun my/treemacs-visible-p ()
+  "Return non-nil if a treemacs window is visible in the selected frame."
+  (and (featurep 'treemacs)
+       (treemacs-get-local-window)))
+
+(defun my/treemacs-auto-sync (frame)
+  "Sync treemacs visibility for FRAME based on its current width.
+Run from a timer inside `with-selected-frame'."
+  (when (frame-live-p frame)
+    (with-selected-frame frame
+      (let ((wide (>= (frame-width frame) my/treemacs-min-width))
+            (shown (frame-parameter frame 'my/treemacs-auto-shown))
+            (actual (my/treemacs-visible-p)))
+        ;; Global override: any manual open/close in any frame disables all.
+        (unless my/treemacs--user-override
+          ;; Override detection: recorded state differs from actual state.
+          (when (and shown
+                     (or (and (eq shown 'shown) (not actual))
+                         (and (eq shown 'hidden) actual)))
+            (setq my/treemacs--user-override t)
+            (message "Treemacs auto-sidebar disabled by manual change"))
+          (unless my/treemacs--user-override
+            (if wide
+                ;; Wide: show treemacs if not already visible.
+                (unless actual
+                  (let ((root (doom-project-root)))
+                    (when (and root
+                               (not (string= (expand-file-name root)
+                                             (expand-file-name "~"))))
+                      (save-selected-window
+                        (let ((inhibit-message t))
+                          (treemacs-add-and-display-current-project-exclusively)))
+                      ;; Record only on success; if skipped, stay pending.
+                      (when (my/treemacs-visible-p)
+                        (set-frame-parameter frame 'my/treemacs-auto-shown 'shown)))))
+              ;; Narrow: hide treemacs unless it's the only window.
+              (when actual
+                (unless (one-window-p)
+                  (ignore-errors (delete-window actual)))
+                (set-frame-parameter frame 'my/treemacs-auto-shown 'hidden)))
+            ;; Remember last width decision for idempotency.
+            (set-frame-parameter frame 'my/treemacs-wide wide)))))))
+
+(defun my/treemacs-auto-schedule (frame)
+  "Cancel and restart the treemacs auto-sync timer for FRAME.
+Installed on `window-size-change-functions'."
+  (when (frame-live-p frame)
+    (let ((timer (frame-parameter frame 'my/treemacs-auto-timer)))
+      (when timer
+        (cancel-timer timer)))
+    (set-frame-parameter
+     frame 'my/treemacs-auto-timer
+     (run-with-timer my/treemacs-auto-debounce-delay nil
+                     #'my/treemacs-auto-sync frame))))
+
+(add-hook 'window-size-change-functions #'my/treemacs-auto-schedule)
+
+(defun my/treemacs-auto-on-first-file ()
+  "Retry opening treemacs once a file is loaded, if the frame is wide.
+At startup the current buffer is usually the dashboard (`default-directory'
+is `~'), so the initial resize hook skips it; this catches the first real
+file."
+  (let ((frame (selected-frame)))
+    (when (and (>= (frame-width frame) my/treemacs-min-width)
+               (not (frame-parameter frame 'my/treemacs-auto-shown))
+               (not my/treemacs--user-override))
+      (my/treemacs-auto-sync frame)
+      (when (frame-parameter frame 'my/treemacs-auto-shown)
+        (remove-hook 'doom-first-file-hook #'my/treemacs-auto-on-first-file)))))
+
+(add-hook 'doom-first-file-hook #'my/treemacs-auto-on-first-file)
+
+(defun my/treemacs-auto-resume ()
+  "Resume treemacs auto-sidebar in all live frames."
+  (interactive)
+  (setq my/treemacs--user-override nil)
+  (dolist (frame (frame-list))
+    (when (frame-live-p frame)
+      (set-frame-parameter frame 'my/treemacs-auto-shown nil)
+      (set-frame-parameter frame 'my/treemacs-wide nil)
+      (my/treemacs-auto-sync frame))))
+
+;;;; ─────────────────────────────────────────────────────────────
 ;;;; Small quality-of-life
 ;;;; ─────────────────────────────────────────────────────────────
 (setq-default fill-column 100)

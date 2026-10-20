@@ -178,6 +178,15 @@ this checkout. Commit identity:
   `global-map` until `mouse-wheel-mode` is invoked explicitly.
   `config.el`'s `tty-setup-hook` now forces `(mouse-wheel-mode 1)`
   alongside `xterm-mouse-mode`.
+- **Treemacs auto-sidebar by width**: `(treemacs +lsp)` opens automatically
+  when the selected frame is at least `my/treemacs-min-width` (100) columns,
+  but only inside a real project (`doom-project-root` non-nil and not `~`).
+  The handler on `window-size-change-functions` is debounced with a
+  `run-with-timer` and is idempotent: it only acts when the frame's wide/narrow
+  state or the sidebar's visibility changes. A manual open/close in any frame
+  sets the global `my/treemacs--user-override` and disables automation
+  everywhere until `M-x my/treemacs-auto-resume`. At startup from the
+  dashboard, the sidebar stays pending until `doom-first-file-hook` fires.
 
 - **Omarchy integration in Doom** (fixed 2026-10-09): `config.el`
   loads `/usr/share/omarchy-emacs/config/omarchy.el` only if it
@@ -253,3 +262,7 @@ this checkout. Commit identity:
     with the package's `omarchy-apply-theme` disabled.
 13. Terminal-only daemon client launcher (2026-10-15): added
     `omarchy/emacsclient.desktop`.
+14. Implemented width-aware treemacs sidebar (2026-10-20): auto-opens at
+    >= 100 columns inside real projects, follows live resizes via
+    `window-size-change-functions` with a 0.2s debounce, and stops on any
+    manual open/close in any frame until `my/treemacs-auto-resume`.
