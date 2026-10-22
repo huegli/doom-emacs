@@ -226,7 +226,11 @@ this checkout. Commit identity:
     (verified: injected `CSI 27;5;51~` and `CSI 51;5u` both act as C-3,
     `CSI 27;5;32~` as C-SPC). A real Ctrl-3 therefore needs a
     client-side iTerm2 key mapping (⌃3 → Send Escape Sequence
-    `[27;5;51~`); not yet verified through `-CC`.
+    `[27;5;51~`). The user added it; re-probed the same day: through
+    `-CC` the pane gets exactly `1b 5b 32 37 3b 35 3b 35 31 7e` (with and
+    without modifyOtherKeys), and in real Doom the key arrives as event
+    `C-3` and gives the next command prefix arg 3. Other Ctrl-digits
+    work the same way (`[27;5;N~` with N = the digit's ASCII code).
   - Testing caveat: Doom's generated profile
     (`~/.config/emacs/.local/etc/@/init.31.1.el`) hardcodes
     `/Users/nikolai/.config/doom/`, so `DOOMDIR=...` does **not** load a
@@ -324,4 +328,6 @@ this checkout. Commit identity:
     user's real iTerm2 → SSH (reverse tunnel, iTerm2 SSH integration) →
     tmux -CC chain delivers; fixed clipetty's stale-`SSH_TTY` clipboard
     failure inside tmux; added decode entries for C-SPC and C-2…C-8.
-    Ctrl-3 and Ctrl-Space need client-side changes (see decisions above).
+    Ctrl-3 works since the user added an iTerm2 key mapping on the
+    client (verified end to end); Ctrl-Space still needs a client-side
+    change (see decisions above).
