@@ -23,19 +23,26 @@
                                      "JetBrains Mono")
                            :size 13))
 
-;; Terminal mouse, clipboard, cursor shape, and key disambiguation are all
-;; handled by the `(tty +osc)' module in init.el — nothing needed here:
+;; Terminal mouse, clipboard, cursor shape, and key disambiguation come from
+;; the `(tty +osc)' module in init.el; the code below only fills its gaps:
 ;;   • xterm-mouse-mode        added to tty-setup-hook by the module
 ;;                             below Emacs 31; on 31+ Emacs enables it
 ;;                             itself (see hook below for the tmux gap)
-;;   • clipboard              clipetty / OSC 52 (the +osc flag)
+;;   • clipboard              clipetty / OSC 52 (the +osc flag); see the
+;;                            tmux/SSH_TTY fix below
 ;;   • key disambiguation     kkp (Kitty keyboard protocol), which also
-;;                            separates C-i from TAB
+;;                            separates C-i from TAB -- outside tmux only:
+;;                            tmux (3.8) never answers kkp's `CSI ? u'
+;;                            query, so kkp stays off in a tmux pane
 ;;
 ;; Deliberately NOT setting `xterm-extra-capabilities' to modifyOtherKeys:
 ;; that is a competing solution to the same problem kkp solves, and running
-;; both risks garbled modifier keys. If a chord like C-c C-l misbehaves in
-;; the terminal, check `M-x kkp-status' before adding anything back here.
+;; both risks garbled modifier keys. (Inside tmux, Emacs's term/tmux.el
+;; turns modifyOtherKeys on by itself via `xterm-tmux-extra-capabilities'.)
+;; Through iTerm2 -> SSH -> tmux -CC, neither request changes anything: a
+;; probe on 2026-10-22 received the same legacy bytes (Ctrl-3 -> ESC) under
+;; legacy, modifyOtherKeys 1/2, and kitty modes. If a chord like C-c C-l
+;; misbehaves, check `M-x kkp-status' before adding anything back here.
 
 ;; Emacs 31's automatic xterm-mouse-mode detection queries the terminal
 ;; (XTVERSION) and only enables itself if the reply names a known-good
@@ -59,6 +66,52 @@
               (xterm-mouse-mode 1))
             (unless (and (featurep 'mwheel) mouse-wheel-mode)
               (mouse-wheel-mode 1))))
+
+;; Clipboard (OSC 52) inside tmux over SSH. clipetty -- the +osc half of
+;; `(tty +osc)' -- sends OSC 52 straight to $SSH_TTY whenever that is set,
+;; bypassing tmux. Inside tmux that variable can't be trusted: tmux copies
+;; it into its global environment when the server starts and never updates
+;; it (SSH_TTY is not in `update-environment'). After reconnecting and
+;; re-attaching (`tmux -CC new-session -A'), it names a pty that is gone --
+;; every kill fails with "clipetty--emit: Opening output file: Operation not
+;; permitted, /dev/ttysNNN" (macOS gives EPERM, not ENOENT, for a missing
+;; /dev node) -- or one reused by another login, which silently gets the
+;; clipboard instead. Even a fresh value is wrong
+;; here: with iTerm2's SSH integration, $SSH_TTY is that integration's own
+;; channel, not the terminal Emacs is drawn on.
+;;
+;; So inside tmux, ignore SSH_TTY: clipetty then writes to this pane, wrapped
+;; in tmux's DCS passthrough (needs `allow-passthrough on' in ~/.tmux.conf).
+;; Verified 2026-10-22 from a tmux pane through iTerm2 -> SSH -> tmux -CC:
+;; that sequence lands on the local clipboard.
+(defun my/clipetty-tty-ignore-ssh-in-tmux-a (args)
+  "Filter ARGS of `clipetty--tty' (SSH-TTY TMUX): drop SSH-TTY inside tmux."
+  (pcase-let ((`(,ssh-tty ,tmux) args))
+    (list (unless tmux ssh-tty) tmux)))
+
+(defun my/clipetty-dcs-wrap-ignore-ssh-in-tmux-a (args)
+  "Filter ARGS of `clipetty--dcs-wrap' (STRING TMUX TERM SSH-TTY): same."
+  (pcase-let ((`(,string ,tmux ,term ,ssh-tty) args))
+    (list string tmux term (unless tmux ssh-tty))))
+
+(after! clipetty
+  (advice-add 'clipetty--tty :filter-args #'my/clipetty-tty-ignore-ssh-in-tmux-a)
+  (advice-add 'clipetty--dcs-wrap :filter-args
+              #'my/clipetty-dcs-wrap-ignore-ssh-in-tmux-a))
+
+;; Ctrl-SPC and Ctrl-2 … Ctrl-8 have legacy control codes (NUL, ESC, C-\ …),
+;; so xterm.el's table of modifyOtherKeys / CSI u key reports leaves them out
+;; ("Not all C-DIGIT keys have a distinct binding"). Without these entries,
+;; a terminal that does send them distinctly gets its key silently dropped.
+;; Nothing in the iTerm2 -> tmux -CC chain sends them by itself (see above);
+;; an iTerm2 key mapping such as Ctrl-3 -> Send Escape Sequence "[27;5;51~"
+;; does, and these entries decode it back into C-3.
+(defun my/tty-decode-ctrl-keys-h ()
+  (dolist (key '((32 . ?\C-\s) (50 . ?\C-2) (51 . ?\C-3) (52 . ?\C-4)
+                 (53 . ?\C-5) (54 . ?\C-6) (55 . ?\C-7) (56 . ?\C-8)))
+    (define-key input-decode-map (format "\e[27;5;%d~" (car key)) (vector (cdr key)))
+    (define-key input-decode-map (format "\e[%d;5u" (car key)) (vector (cdr key)))))
+(add-hook 'tty-setup-hook #'my/tty-decode-ctrl-keys-h)
 
 ;; Line numbers off in terminal for speed; toggle with C-c t l.
 (setq display-line-numbers-type nil)

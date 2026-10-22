@@ -31,9 +31,22 @@ the Mac setup is unaffected.
   Doom modules live at `~/.config/emacs/sources/doom+/modules/`
   (not `modules/`); packages are at `~/.config/emacs/.local/straight/repos/`.
   There is no `init.el` in that directory — `early-init.el` is the entry.
-- Terminal: iTerm2, often with tmux 3.7c (`mouse on`,
-  `default-terminal tmux-256color`, `allow-passthrough on`, built for
-  iTerm2 `-CC` integration mode — see `~/.tmux.conf`).
+- Terminal: iTerm2, often with tmux (3.8 since 2026-10-22; was 3.7c)
+  (`mouse on`, `default-terminal tmux-256color`, `allow-passthrough on`,
+  built for iTerm2 `-CC` integration mode — see `~/.tmux.conf`).
+- **The terminal is remote** (verified 2026-10-22): iTerm2 3.7.6 runs on
+  a *different* machine — no iTerm2 process exists on the Mac mini, so
+  iTerm2 prefs and macOS keyboard shortcuts on the client cannot be
+  inspected from here. It reaches the Mac through an `autossh` reverse
+  tunnel (`-R 2222:localhost:22` to a VPS), so every SSH login shows up
+  as coming from `::1`. iTerm2's SSH integration runs a Python "framer"
+  that owns the sshd pty (= `$SSH_TTY`, e.g. `/dev/ttys000`) and starts
+  `tmux -CC new-session -A -s m2-main` on a pty of its own. Consequences:
+  `$SSH_TTY` is never the terminal a program is drawn on, and it goes
+  stale in tmux's global environment after a reconnect. Claude Code
+  itself runs in a pane of that session. A window created with
+  `tmux new-window` did **not** appear in the user's iTerm2; a
+  `tmux split-window` in the current window did.
 - Lisps: SBCL 2.6.8 (Homebrew, started as an inferior process with
   `--dynamic-space-size 4096`) and LispWorks, in two forms: (1) a
   long-running external image with a Slynk server on localhost:4005 —
@@ -178,6 +191,47 @@ this checkout. Commit identity:
   `global-map` until `mouse-wheel-mode` is invoked explicitly.
   `config.el`'s `tty-setup-hook` now forces `(mouse-wheel-mode 1)`
   alongside `xterm-mouse-mode`.
+- **Clipboard inside tmux ignores `SSH_TTY`** (fixed 2026-10-22): clipetty
+  writes OSC 52 straight to `$SSH_TTY` when it is set. Inside tmux that
+  value is inherited from the server's global environment and goes stale
+  after a reconnect plus `-A` re-attach (`SSH_TTY` isn't in tmux's
+  `update-environment`). The result was `clipetty--emit: Opening output
+  file: Operation not permitted, /dev/ttysNNN` (macOS gives EPERM for a
+  missing `/dev` node), or a write to another login's pty. `config.el`
+  filters `SSH_TTY` out of `clipetty--tty`/`clipetty--dcs-wrap` whenever
+  `TMUX` is set, so clipetty writes to the pane wrapped in tmux DCS
+  passthrough. Verified end to end: a DCS-wrapped OSC 52 written in a
+  tmux pane landed on the remote client's clipboard. Reproduced and
+  verified the fix with real Doom in an isolated `tmux -L` server whose
+  `SSH_TTY` named a nonexistent pty. Outside tmux, clipetty is unchanged.
+  Do **not** "fix" this with `set -ag update-environment SSH_TTY`: that
+  only refreshes the framer's pty, which is still the wrong target.
+- **Terminal key limits under tmux -CC** (measured 2026-10-22 with a
+  byte-logging probe in a tmux pane, keys pressed by the user in iTerm2):
+  - Ctrl-3 arrives as a bare `ESC` (hence `ESC-` in the echo area) in
+    every mode: legacy, modifyOtherKeys 1 and 2, and kitty `CSI > 1 u`.
+    No app-requested key protocol gets through this chain. tmux answers
+    `CSI c` and XTVERSION itself and never answers `CSI ? u`, so kkp
+    stays off in every tmux pane (Emacs's `term/tmux.el` requests
+    modifyOtherKeys there anyway, without effect).
+  - Ctrl-Space arrives as *nothing*: it is lost on the client (macOS
+    input-source shortcut ⌃Space or iTerm2), because tmux 3.8 delivers
+    NUL for every form a control client can send (`0x0`, `C-Space`,
+    `C-@`, `-H 00`). When it does arrive, NUL → `C-@` →
+    `set-mark-command` works with no config change.
+  - xterm.el has no decode entries for `C-SPC` and `C-2`…`C-8` in
+    either `CSI 27;5;N~` or `CSI N;5u` form (only C-0/C-1/C-9), so
+    these keys were silently dropped even when a terminal did send them.
+    `my/tty-decode-ctrl-keys-h` adds them to `input-decode-map`
+    (verified: injected `CSI 27;5;51~` and `CSI 51;5u` both act as C-3,
+    `CSI 27;5;32~` as C-SPC). A real Ctrl-3 therefore needs a
+    client-side iTerm2 key mapping (⌃3 → Send Escape Sequence
+    `[27;5;51~`); not yet verified through `-CC`.
+  - Testing caveat: Doom's generated profile
+    (`~/.config/emacs/.local/etc/@/init.31.1.el`) hardcodes
+    `/Users/nikolai/.config/doom/`, so `DOOMDIR=...` does **not** load a
+    different config. To compare against old behaviour, undo the change
+    at runtime (e.g. via `emacs -nw -l undo.el`) instead.
 - **Treemacs auto-sidebar by width**: `(treemacs +lsp)` opens automatically
   when the selected frame is at least `my/treemacs-min-width` (100) columns,
   but only inside a real project (`doom-project-root` non-nil and not `~`).
@@ -266,3 +320,8 @@ this checkout. Commit identity:
     >= 100 columns inside real projects, follows live resizes via
     `window-size-change-functions` with a 0.2s debounce, and stops on any
     manual open/close in any frame until `my/treemacs-auto-resume`.
+15. Terminal debugging, second pass (2026-10-22): measured what the
+    user's real iTerm2 → SSH (reverse tunnel, iTerm2 SSH integration) →
+    tmux -CC chain delivers; fixed clipetty's stale-`SSH_TTY` clipboard
+    failure inside tmux; added decode entries for C-SPC and C-2…C-8.
+    Ctrl-3 and Ctrl-Space need client-side changes (see decisions above).
