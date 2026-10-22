@@ -214,11 +214,13 @@ this checkout. Commit identity:
     `CSI c` and XTVERSION itself and never answers `CSI ? u`, so kkp
     stays off in every tmux pane (Emacs's `term/tmux.el` requests
     modifyOtherKeys there anyway, without effect).
-  - Ctrl-Space arrives as *nothing*: it is lost on the client (macOS
-    input-source shortcut ⌃Space or iTerm2), because tmux 3.8 delivers
-    NUL for every form a control client can send (`0x0`, `C-Space`,
-    `C-@`, `-H 00`). When it does arrive, NUL → `C-@` →
-    `set-mark-command` works with no config change.
+  - Ctrl-Space arrived as *nothing*: the client's macOS input-source
+    shortcut (⌃Space, "Select the previous input source") swallowed it.
+    tmux 3.8 itself delivers NUL for every form a control client can
+    send (`0x0`, `C-Space`, `C-@`, `-H 00`). After the user turned that
+    shortcut off, a re-probe got `00` in the pane (with and without
+    modifyOtherKeys), and in real Doom NUL → `C-@` → `set-mark-command`
+    (mark active, `C-f` extends the region) with no config change.
   - xterm.el has no decode entries for `C-SPC` and `C-2`…`C-8` in
     either `CSI 27;5;N~` or `CSI N;5u` form (only C-0/C-1/C-9), so
     these keys were silently dropped even when a terminal did send them.
@@ -329,5 +331,6 @@ this checkout. Commit identity:
     tmux -CC chain delivers; fixed clipetty's stale-`SSH_TTY` clipboard
     failure inside tmux; added decode entries for C-SPC and C-2…C-8.
     Ctrl-3 works since the user added an iTerm2 key mapping on the
-    client (verified end to end); Ctrl-Space still needs a client-side
-    change (see decisions above).
+    client, and Ctrl-Space since they turned off the client's macOS
+    ⌃Space input-source shortcut (both verified end to end; see
+    decisions above).
