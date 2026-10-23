@@ -16,27 +16,27 @@
 (doom! :input
 
        :completion
-       (corfu +orderless +icons)         ; in-buffer completion (works great in TTY)
-       (vertico +icons)                  ; minibuffer completion
+       (corfu +orderless +icons)        ; in-buffer completion (works great in TTY)
+       (vertico +icons)                 ; minibuffer completion
 
        :ui
-       doom                              ; Doom's look
-       doom-dashboard                    ; startup screen
-       hl-todo                           ; TODO/FIXME highlighting
+       doom                             ; Doom's look
+       hl-todo                          ; TODO/FIXME highlighting
        modeline
        (popup +defaults)
        (vc-gutter +pretty)
-       workspaces                        ; tab workspaces (C-c w prefix)
+       workspaces                       ; tab workspaces (C-c w prefix)
        indent-guides
-       (emoji +unicode)                  ; safer in terminals than +ascii
+       (emoji +unicode)                 ; safer in terminals than +ascii
        (treemacs +lsp)
+       (window-select)
 
        :editor
        ;; NO evil — vanilla Emacs keybindings throughout.
        file-templates
        fold
        (format +onsave)
-       lispy                             ; modal sexp editing, built for vanilla Emacs
+       lispy                            ; modal sexp editing, built for vanilla Emacs
        snippets
        word-wrap
 
@@ -49,35 +49,34 @@
 
        :term
        eshell
-       vterm                             ; requires libvterm; falls back to eshell if unavailable
 
        :checkers
        syntax
        (spell +flyspell)
 
        :tools
-       (eval +overlay)                   ; C-x C-e overlay results
+       (eval +overlay)                  ; C-x C-e overlay results
        lookup
        magit
-       (lsp +peek)                       ; Eglot alt below; keep lsp-mode for Clojure/Python
+       (lsp +peek)                      ; Eglot alt below; keep lsp-mode for Clojure/Python
        tree-sitter
-       direnv                            ; picks up .envrc / uv venvs
+       direnv                           ; picks up .envrc / uv venvs
 
        :os
-       (:if (featurep :system 'macos) macos)  ; improve compatibility with macOS
-       (tty +osc)               ; improve the terminal Emacs experience
+       (:if (featurep :system 'macos) macos) ; improve compatibility with macOS
+       (tty +osc)                            ; improve the terminal Emacs experience
 
        :lang
        (cc +lsp)
-       common-lisp                       ; SLY + sly-quicklisp
+       common-lisp                      ; SLY + sly-quicklisp
        data
        emacs-lisp
-       (clojure +lsp)                    ; CIDER + clojure-lsp
+       (clojure +lsp)                   ; CIDER + clojure-lsp
        markdown
        org
-       (python +lsp +pyright)            ; useful next to Hy
-       racket                            ; racket-mode + xp-mode
-       scheme                            ; Geiser: wired for Chez + Racket in config.el
+       (python +lsp +pyright)           ; useful next to Hy
+       racket                           ; racket-mode + xp-mode
+       scheme                           ; Geiser: wired for Chez + Racket in config.el
        sh
 
        :email
