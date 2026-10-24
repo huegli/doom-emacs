@@ -510,3 +510,10 @@ file."
     (setq explicit-bash-args
           `("--noediting" "--rcfile"
             ,(expand-file-name "shell-bashrc" doom-user-dir) "-i"))))
+
+;; Right-click (mouse-3) emulation in the terminal. `xterm-mouse-mode'
+;; delivers real right-clicks as mouse-3; by default that only extends the
+;; region (`mouse-save-then-kill'). `context-menu-mode' turns it into a
+;; popup menu, and `C-c m' opens the same menu from the keyboard.
+(context-menu-mode 1)
+(global-set-key (kbd "C-c m") #'context-menu-open)

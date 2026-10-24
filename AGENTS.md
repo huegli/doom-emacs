@@ -238,6 +238,7 @@ this checkout. Commit identity:
     `/Users/nikolai/.config/doom/`, so `DOOMDIR=...` does **not** load a
     different config. To compare against old behaviour, undo the change
     at runtime (e.g. via `emacs -nw -l undo.el`) instead.
+- **Right-click emulation** (2026-10-23): `config.el` enables `context-menu-mode` (mouse-3 → popup menu via `xterm-mouse-mode`) and binds `C-c m` to `context-menu-open` as a keyboard fallback. Syntax-checked only; not tried in the user's iTerm2 → tmux -CC chain.
 - **Treemacs auto-sidebar by width**: `(treemacs +lsp)` opens automatically
   when the selected frame is at least `my/treemacs-min-width` (100) columns,
   but only inside a real project (`doom-project-root` non-nil and not `~`).
